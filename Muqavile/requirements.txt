@@ -1,0 +1,6 @@
+streamlit
+python-docx
+pandas
+requests
+beautifulsoup4
+Pillow
