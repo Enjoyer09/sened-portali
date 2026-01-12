@@ -54,7 +54,7 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# KÖMƏKÇİ FUNKSİYALAR (ETİKET & LOGO)
+# KÖMƏKÇİ FUNKSİYALAR (ETİKET & LOGO & FONT)
 # ---------------------------------------------------------
 def get_absolute_path(relative_path):
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -66,18 +66,36 @@ def logo_goster():
     return None
 
 def load_font(filename, size):
-    # 1. Yerli 'fonts' qovluğu
-    local_path = get_absolute_path(os.path.join("fonts", filename))
-    if os.path.exists(local_path):
-        try: return ImageFont.truetype(local_path, size)
-        except: pass
-    # 2. Windows Fonts
-    windows_path = os.path.join(r"C:\Windows\Fonts", filename)
-    if os.path.exists(windows_path):
-        try: return ImageFont.truetype(windows_path, size)
-        except: pass
-    try: return ImageFont.truetype(filename, size)
-    except: return ImageFont.load_default()
+    """
+    Şrifti tapmaq üçün ağıllı funksiya:
+    1. 'fonts' qovluğuna baxır.
+    2. Tapmasa, Google Fonts-dan yükləyir və yadda saxlayır.
+    """
+    # Qovluq yoxdursa yaradaq
+    fonts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+    if not os.path.exists(fonts_dir):
+        os.makedirs(fonts_dir)
+
+    font_path = os.path.join(fonts_dir, filename)
+
+    # 1. Əgər fayl yerində yoxdursa, İNTERNETDƏN YÜKLƏ
+    if not os.path.exists(font_path):
+        # Titillium Web Bold üçün birbaşa link
+        font_url = "https://github.com/google/fonts/raw/main/ofl/titilliumweb/TitilliumWeb-Bold.ttf"
+        try:
+            response = requests.get(font_url)
+            if response.status_code == 200:
+                with open(font_path, "wb") as f:
+                    f.write(response.content)
+        except:
+            pass
+
+    # 2. Şrifti yükləməyə çalışırıq
+    try:
+        return ImageFont.truetype(font_path, size)
+    except:
+        # Hər şey uğursuz olsa, sistemin standart şriftini qaytar
+        return ImageFont.load_default()
 
 def make_white(image):
     image = image.convert("RGBA")
